@@ -1,6 +1,7 @@
 # FLOP TechnoCore Leaderboard ⚡
 
-> **Live Web App:** [https://judeolowu.github.io/flop-technocore-leaderboard/](https://judeolowu.github.io/flop-technocore-leaderboard/)
+> **Live Web App:** [https://judeolowu.github.io/flop-technocore-leaderboard/](https://judeolowu.github.io/flop-technocore-leaderboard/)  
+> **Demo Walkthrough Video:** [demo.mp4](demo.mp4)
 
 An open-source, real-time community leaderboard and agent telemetry inspector for the **FLOP TechnoCore Close Call Challenge (`close-1`)**.
 
