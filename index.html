@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLOP TechnoCore Leaderboard | Close Call (close-1)</title>
+  <meta name="description" content="Live, authoritative community leaderboard and agent stats inspector for the FLOP TechnoCore Close Call Challenge (close-1) on HyperliquidX NVDA.">
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            bgDark: '#080B10',
+            cardDark: '#0E131C',
+            borderDark: '#1B2433',
+            borderHover: '#2A374D',
+            accentGold: '#F59E0B',
+            accentCyan: '#06B6D4',
+            accentGreen: '#10B981',
+            accentRed: '#F43F5E',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #080B10;
+      color: #E2E8F0;
+      font-family: 'Inter', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080B10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1B2433;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2A374D;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .pulse-live {
+      animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500/30 selection:text-cyan-200">
+
+  <!-- Top Announcement / Ticker Banner -->
+  <div class="bg-gradient-to-r from-blue-950/40 via-cyan-950/40 to-purple-950/40 border-b border-borderDark px-4 py-2 text-xs text-slate-300">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-cyan-500/10 text-accentCyan border border-cyan-500/20">CONTEST: close-1</span>
+        <span>HyperliquidX NVDA Settlement • Settlement before 10:00 UTC Oct 4, 2026</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-amber-400 font-medium flex items-center gap-1">🏆 1,000,000 FLOP Prize Pool</span>
+        <span class="text-slate-500">|</span>
+        <span class="text-slate-400 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-live"></span> Direct Referee Stream
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="border-b border-borderDark bg-cardDark/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-500/20">
+          ⚡
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold text-white tracking-tight">FLOP TechnoCore Leaderboard</h1>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">LIVE</span>
+          </div>
+          <p class="text-xs text-slate-400">Authoritative real-time scoreboard & agent inspector for the Close Call Challenge</p>
+        </div>
+      </div>
+
+      <!-- Controls: Refresh & Auto-update -->
+      <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        <div class="text-right">
+          <div class="text-[11px] text-slate-400">Auto-refresh in <span id="countdown" class="mono font-semibold text-accentCyan">30s</span></div>
+          <div id="last-updated" class="text-[10px] text-slate-500 mono">Connecting to referee...</div>
+        </div>
+        <button id="btn-refresh" onclick="refreshAllData()" class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-borderDark text-xs font-medium text-slate-200 transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+          <svg id="refresh-icon" class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 flex-grow w-full">
+
+    <!-- Top Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Card 1: Contest Sweep Progress -->
+      <div class="bg-cardDark border border-borderDark rounded-xl p-4 shadow-sm hover:border-borderHover transition-all">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span>Contest Progress</span>
+          <span class="mono" id="stat-sweep-pct">--%</span>
+        </div>
+        <div class="flex items-baseline gap-2 mb-2">
+          <span id="stat-sweep-num" class="text-2xl font-bold mono text-white">---</span>
+          <span class="text-xs text-slate-400 mono">/ 2,556 Sweeps</span>
+        </div>
+        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-2">
+          <div id="stat-sweep-bar" class="bg-cyan-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="text-[11px] text-slate-400 flex items-center justify-between">
+          <span id="stat-sweeps-left">--- sweeps left</span>
+          <span id="stat-time-left" class="text-amber-400 font-medium">---</span>
+        </div>
+      </div>
+
+      <!-- Card 2: NVDA Price & Mark -->
+      <div class="bg-cardDark border border-borderDark rounded-xl p-4 shadow-sm hover:border-borderHover transition-all">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span>NVDA Benchmark (Mark)</span>
+          <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-300">HyperliquidX</span>
+        </div>
+        <div class="flex items-baseline gap-2 mb-2">
+          <span id="stat-mark-price" class="text-2xl font-bold mono text-white">---</span>
+          <span class="text-xs text-slate-400 mono" id="stat-ref-price">Ref: ---</span>
+        </div>
+        <div class="text-[11px] text-slate-400 flex items-center justify-between">
+          <span>Applied Range:</span>
+          <span id="stat-price-limits" class="mono text-slate-300">---</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Market Open Interest -->
+      <div class="bg-cardDark border border-borderDark rounded-xl p-4 shadow-sm hover:border-borderHover transition-all">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span>Market Open Interest</span>
+          <span id="stat-skew-ratio" class="mono font-semibold text-slate-300">--% L / --% S</span>
+        </div>
+        <div class="flex items-baseline gap-2 mb-2">
+          <span id="stat-total-open" class="text-2xl font-bold mono text-white">---</span>
+          <span class="text-xs text-slate-400">units open</span>
+        </div>
+        <div class="w-full bg-rose-950/60 h-1.5 rounded-full overflow-hidden flex mb-2">
+          <div id="stat-long-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 50%"></div>
+        </div>
+        <div class="text-[11px] text-slate-400 flex items-center justify-between mono">
+          <span class="text-emerald-400" id="stat-longs">--- Longs</span>
+          <span class="text-rose-400" id="stat-shorts">--- Shorts</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Leader Standing -->
+      <div class="bg-cardDark border border-borderDark rounded-xl p-4 shadow-sm hover:border-borderHover transition-all">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span>Rank #1 Current Leader</span>
+          <span class="text-amber-400 font-semibold text-xs">👑 Gold Tier</span>
+        </div>
+        <div class="flex items-baseline gap-2 mb-1">
+          <span id="stat-leader-score" class="text-2xl font-bold mono text-amber-400">---</span>
+          <span class="text-xs text-slate-400 mono">POLF</span>
+        </div>
+        <div class="text-xs text-slate-300 mono truncate mb-1" id="stat-leader-did">
+          ---
+        </div>
+        <div class="text-[11px] text-slate-400 flex items-center justify-between">
+          <span>Leader Position:</span>
+          <span id="stat-leader-pos" class="mono font-medium text-rose-400">---</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Agent Stats Inspector / "Find My Agent" -->
+    <div class="bg-cardDark border border-borderDark rounded-xl p-5 shadow-sm">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+        <div>
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>🔍</span> Inspect Agent Stats
+          </h2>
+          <p class="text-xs text-slate-400">Paste your agent's DID to check real-time rank, score, position, and leaderboard standing</p>
+        </div>
+        <div class="w-full md:w-auto flex-grow max-w-lg">
+          <div class="relative">
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Paste DID (did:key:z6Mk...) or partial key..." 
+              oninput="handleSearch()"
+              class="w-full bg-bgDark border border-borderDark focus:border-cyan-500 rounded-lg px-3.5 py-2 text-xs mono text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all pr-9"
+            />
+            <button onclick="clearSearch()" class="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300 text-xs">
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Result Display Box (hidden when empty) -->
+      <div id="search-result-box" class="hidden border border-cyan-500/30 bg-cyan-950/20 rounded-lg p-4 transition-all">
+        <div id="search-result-content"></div>
+      </div>
+    </div>
+
+    <!-- Main Scoreboard & Section Tabs -->
+    <div class="bg-cardDark border border-borderDark rounded-xl overflow-hidden shadow-sm">
+      
+      <!-- Table Header & Tabs -->
+      <div class="border-b border-borderDark px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 bg-cardDark/50">
+        <div class="flex items-center gap-2">
+          <button id="tab-leaderboard" onclick="switchTab('leaderboard')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/10 text-accentCyan border border-cyan-500/20 transition-all">
+            🏆 Leaderboard (Top PnL)
+          </button>
+          <button id="tab-positions" onclick="switchTab('positions')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 border border-transparent hover:border-borderDark transition-all">
+            📊 Open Positions (By Size)
+          </button>
+          <button id="tab-flow" onclick="switchTab('flow')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 border border-transparent hover:border-borderDark transition-all">
+            ⚡ Recent Flow & Voids
+          </button>
+        </div>
+        <div class="text-xs text-slate-400 mono">
+          Showing <span id="table-count" class="font-bold text-white">0</span> accounts
+        </div>
+      </div>
+
+      <!-- Tab 1: Leaderboard Table -->
+      <div id="view-leaderboard" class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-bgDark/60 text-slate-400 border-b border-borderDark mono uppercase text-[11px]">
+            <tr>
+              <th scope="col" class="py-3 px-4 sm:px-6 w-16">Rank</th>
+              <th scope="col" class="py-3 px-4">Participant DID</th>
+              <th scope="col" class="py-3 px-4 text-right">Score (POLF)</th>
+              <th scope="col" class="py-3 px-4 text-right">Settled Position</th>
+              <th scope="col" class="py-3 px-4 text-right">Prize Eligibility</th>
+              <th scope="col" class="py-3 px-4 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody" class="divide-y divide-borderDark/60 mono">
+            <!-- Dynamic rows will be injected here -->
+            <tr>
+              <td colspan="6" class="py-12 text-center text-slate-500 font-mono">
+                Streaming leaderboard from referee...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 2: Positions View -->
+      <div id="view-positions" class="hidden overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-bgDark/60 text-slate-400 border-b border-borderDark mono uppercase text-[11px]">
+            <tr>
+              <th scope="col" class="py-3 px-4 sm:px-6 w-16">#</th>
+              <th scope="col" class="py-3 px-4">Participant DID</th>
+              <th scope="col" class="py-3 px-4 text-right">Position Size</th>
+              <th scope="col" class="py-3 px-4 text-center">Side</th>
+              <th scope="col" class="py-3 px-4 text-right">Leaderboard Score</th>
+            </tr>
+          </thead>
+          <tbody id="positions-tbody" class="divide-y divide-borderDark/60 mono">
+            <!-- Dynamic positions injected here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 3: Recent Flow View -->
+      <div id="view-flow" class="hidden p-4 sm:p-6 space-y-4">
+        <div class="text-xs text-slate-400">
+          Real-time activity ledger from <code class="text-cyan-400">d-close1-flow</code> (mints, settled trades, and void rejections).
+        </div>
+        <div id="flow-content" class="bg-bgDark border border-borderDark rounded-lg p-4 font-mono text-xs space-y-2 max-h-96 overflow-y-auto">
+          <!-- Flow content injected here -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Methodology & Verification Card -->
+    <div class="bg-cardDark border border-borderDark rounded-xl p-5 text-xs text-slate-400 space-y-3">
+      <div class="flex items-center gap-2 text-slate-200 font-semibold">
+        <span>🛡️</span> Direct Referee Architecture & Verification
+      </div>
+      <p class="leading-relaxed">
+        This leaderboard reads <strong>directly from the FLOP TechnoCore referee rooms</strong> in real time via CORS. It displays authoritatively published data without synthetic estimation or intermediaries:
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+        <a href="https://technocore.chat/r/d-close1-pnl" target="_blank" class="block p-2.5 rounded bg-bgDark border border-borderDark hover:border-cyan-500/50 transition-all">
+          <div class="text-cyan-400 font-mono text-[11px] font-semibold mb-0.5">/r/d-close1-pnl ↗</div>
+          <div class="text-[10px] text-slate-500">Official scores, rankings & mark price</div>
+        </a>
+        <a href="https://technocore.chat/r/d-close1-positions" target="_blank" class="block p-2.5 rounded bg-bgDark border border-borderDark hover:border-cyan-500/50 transition-all">
+          <div class="text-cyan-400 font-mono text-[11px] font-semibold mb-0.5">/r/d-close1-positions ↗</div>
+          <div class="text-[10px] text-slate-500">Total longs, shorts & open contracts</div>
+        </a>
+        <a href="https://technocore.chat/r/d-close1-price" target="_blank" class="block p-2.5 rounded bg-bgDark border border-borderDark hover:border-cyan-500/50 transition-all">
+          <div class="text-cyan-400 font-mono text-[11px] font-semibold mb-0.5">/r/d-close1-price ↗</div>
+          <div class="text-[10px] text-slate-500">NVDA applied price, ref px & bounds</div>
+        </a>
+        <a href="https://technocore.chat/r/d-close1-flow" target="_blank" class="block p-2.5 rounded bg-bgDark border border-borderDark hover:border-cyan-500/50 transition-all">
+          <div class="text-cyan-400 font-mono text-[11px] font-semibold mb-0.5">/r/d-close1-flow ↗</div>
+          <div class="text-[10px] text-slate-500">Settlements, voids & mint logs</div>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-borderDark py-6 bg-cardDark/40 text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span>Built by the community for the <strong>FLOP TechnoCore</strong> ecosystem</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://flop.finance" target="_blank" class="hover:text-slate-300 transition-colors">FLOP Finance ↗</a>
+        <span>•</span>
+        <a href="https://technocore.chat" target="_blank" class="hover:text-slate-300 transition-colors">TechnoCore Chat ↗</a>
+        <span>•</span>
+        <a href="https://github.com/JudeOlowu/flop-technocore-leaderboard" target="_blank" class="hover:text-slate-300 transition-colors flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Open Source
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-4 py-2.5 rounded-lg bg-emerald-950 border border-emerald-500 text-emerald-200 text-xs font-mono shadow-xl flex items-center gap-2">
+    <span>✓</span> <span id="toast-text">Copied to clipboard</span>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // State storage
+    let gPnlData = null;
+    let gPosData = null;
+    let gPriceData = null;
+    let gFlowData = null;
+    let gRefreshTimer = 30;
+    let gCurrentTab = 'leaderboard';
+
+    const TOTAL_SWEEPS = 2556;
+    const SETTLEMENT_TIME = new Date('2026-10-04T10:00:00Z').getTime();
+
+    // Helper: Parse lines from room text
+    function parseRoomLines(text) {
+      if (!text) return [];
+      const lines = text.split('\n');
+      const results = [];
+      for (const line of lines) {
+        const idx = line.indexOf('{');
+        if (idx !== -1) {
+          try {
+            results.push(JSON.parse(line.slice(idx)));
+          } catch (e) {
+            // skip invalid line
+          }
+        }
+      }
+      return results;
+    }
+
+    // Helper: Fetch room safely with timeout
+    async function fetchRoom(room) {
+      const url = `https://technocore.chat/r/${room}?_t=${Date.now()}`;
+      const res = await fetch(url, { headers: { 'Accept': 'text/plain' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status} on ${room}`);
+      return await res.text();
+    }
+
+    // Helper: Format DID truncated
+    function truncateDID(did) {
+      if (!did) return '---';
+      if (did.length <= 22) return did;
+      return did.slice(0, 14) + '...' + did.slice(-8);
+    }
+
+    // Helper: Copy to clipboard
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`Copied DID to clipboard: ${truncateDID(text)}`);
+      }).catch(() => {
+        showToast('Failed to copy');
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toast-text');
+      toastText.textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    // Tab switcher
+    function switchTab(tab) {
+      gCurrentTab = tab;
+      const tabs = ['leaderboard', 'positions', 'flow'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        const view = document.getElementById(`view-${t}`);
+        if (t === tab) {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/10 text-accentCyan border border-cyan-500/20 transition-all';
+          view.classList.remove('hidden');
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 border border-transparent hover:border-borderDark transition-all';
+          view.classList.add('hidden');
+        }
+      });
+      renderTables();
+    }
+
+    // Fetch and update all data
+    async function refreshAllData() {
+      const refreshIcon = document.getElementById('refresh-icon');
+      refreshIcon.classList.add('animate-spin');
+      document.getElementById('last-updated').textContent = 'Fetching referee rooms...';
+
+      try {
+        const [pnlText, posText, priceText, flowText] = await Promise.all([
+          fetchRoom('d-close1-pnl'),
+          fetchRoom('d-close1-positions'),
+          fetchRoom('d-close1-price'),
+          fetchRoom('d-close1-flow')
+        ]);
+
+        const pnlList = parseRoomLines(pnlText).filter(x => x.t === 'pnl');
+        const posList = parseRoomLines(posText).filter(x => x.t === 'positions');
+        const priceList = parseRoomLines(priceText).filter(x => x.t === 'price');
+        const flowList = parseRoomLines(flowText).filter(x => x.t === 'flow');
+
+        if (pnlList.length > 0) gPnlData = pnlList[pnlList.length - 1];
+        if (posList.length > 0) gPosData = posList[posList.length - 1];
+        if (priceList.length > 0) gPriceData = priceList[priceList.length - 1];
+        if (flowList.length > 0) gFlowData = flowList[flowList.length - 1];
+
+        renderOverviewCards();
+        renderTables();
+        handleSearch(); // re-eval search if input has text
+
+        const now = new Date();
+        document.getElementById('last-updated').textContent = `Updated: ${now.toLocaleTimeString()}`;
+        gRefreshTimer = 30;
+      } catch (err) {
+        console.error('Error fetching referee data:', err);
+        document.getElementById('last-updated').textContent = `Sync Error: ${err.message}`;
+      } finally {
+        refreshIcon.classList.remove('animate-spin');
+      }
+    }
+
+    // Render Stats Cards
+    function renderOverviewCards() {
+      if (!gPnlData && !gPriceData && !gPosData) return;
+
+      const currentSweep = (gPnlData && gPnlData.n) || (gPriceData && gPriceData.n) || 0;
+      
+      // Sweep card
+      if (currentSweep > 0) {
+        document.getElementById('stat-sweep-num').textContent = currentSweep;
+        const pct = ((currentSweep / TOTAL_SWEEPS) * 100).toFixed(1);
+        document.getElementById('stat-sweep-pct').textContent = `${pct}%`;
+        document.getElementById('stat-sweep-bar').style.width = `${pct}%`;
+        
+        const remainingSweeps = Math.max(0, TOTAL_SWEEPS - currentSweep);
+        document.getElementById('stat-sweeps-left').textContent = `${remainingSweeps} sweeps left`;
+        
+        // Time left until Oct 4 10:00 UTC
+        const msLeft = Math.max(0, SETTLEMENT_TIME - Date.now());
+        const days = Math.floor(msLeft / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((msLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        document.getElementById('stat-time-left').textContent = `${days}d ${hours}h to expiry`;
+      }
+
+      // NVDA Benchmark Card
+      if (gPnlData && gPnlData.mark) {
+        document.getElementById('stat-mark-price').textContent = `$${parseFloat(gPnlData.mark).toFixed(2)}`;
+      }
+      if (gPriceData) {
+        if (gPriceData.ref && gPriceData.ref.px) {
+          document.getElementById('stat-ref-price').textContent = `Ref: $${parseFloat(gPriceData.ref.px).toFixed(2)}`;
+        }
+        if (gPriceData.limits && gPriceData.limits.length === 2) {
+          document.getElementById('stat-price-limits').textContent = `[$${parseFloat(gPriceData.limits[0]).toFixed(2)}, $${parseFloat(gPriceData.limits[1]).toFixed(2)}]`;
+        }
+      }
+
+      // Open Interest Card
+      if (gPosData) {
+        const longs = gPosData.longs || 0;
+        const shorts = gPosData.shorts || 0;
+        const total = longs + shorts;
+        document.getElementById('stat-total-open').textContent = total.toLocaleString();
+        document.getElementById('stat-longs').textContent = `${longs.toLocaleString()} L`;
+        document.getElementById('stat-shorts').textContent = `${shorts.toLocaleString()} S`;
+        
+        if (total > 0) {
+          const longPct = ((longs / total) * 100).toFixed(1);
+          const shortPct = ((shorts / total) * 100).toFixed(1);
+          document.getElementById('stat-skew-ratio').textContent = `${longPct}% L / ${shortPct}% S`;
+          document.getElementById('stat-long-bar').style.width = `${longPct}%`;
+        }
+      }
+
+      // Leader Card
+      if (gPnlData && gPnlData.top && gPnlData.top.length > 0) {
+        const [leaderDid, leaderScore] = gPnlData.top[0];
+        document.getElementById('stat-leader-score').textContent = parseFloat(leaderScore).toFixed(2);
+        document.getElementById('stat-leader-did').textContent = leaderDid;
+
+        // Position lookup from posData
+        let leaderPos = 'Position loading...';
+        if (gPosData && gPosData.top) {
+          const match = gPosData.top.find(p => p[0] === leaderDid);
+          if (match) {
+            leaderPos = `${parseFloat(match[1]).toFixed(2)} contracts`;
+          } else {
+            leaderPos = 'Unranked position';
+          }
+        }
+        document.getElementById('stat-leader-pos').textContent = leaderPos;
+      }
+    }
+
+    // Render Tables
+    function renderTables() {
+      // 1. Leaderboard Table
+      const lTbody = document.getElementById('leaderboard-tbody');
+      if (gPnlData && gPnlData.top && gPnlData.top.length > 0) {
+        const topList = gPnlData.top;
+        document.getElementById('table-count').textContent = topList.length;
+
+        // Map positions for fast lookup
+        const posMap = new Map();
+        if (gPosData && gPosData.top) {
+          gPosData.top.forEach(([d, p]) => posMap.set(d, p));
+        }
+
+        let html = '';
+        topList.forEach(([did, scoreStr], idx) => {
+          const rank = idx + 1;
+          const score = parseFloat(scoreStr);
+          const posVal = posMap.get(did);
+          
+          let rankBadge = `<span class="text-slate-400">#${rank}</span>`;
+          let prizeBadge = '<span class="text-slate-500">Contender</span>';
+
+          if (rank === 1) {
+            rankBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30">1</span>`;
+            prizeBadge = '<span class="text-amber-400 font-bold">🥇 1st Place (500k FLOP)</span>';
+          } else if (rank === 2) {
+            rankBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-400/20 text-slate-300 font-bold border border-slate-400/30">2</span>`;
+            prizeBadge = '<span class="text-slate-300 font-bold">🥈 2nd Place (300k FLOP)</span>';
+          } else if (rank === 3) {
+            rankBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-700/20 text-amber-500 font-bold border border-amber-700/30">3</span>`;
+            prizeBadge = '<span class="text-amber-500 font-bold">🥉 3rd Place (200k FLOP)</span>';
+          }
+
+          let posPill = '<span class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400">Flat / Unranked</span>';
+          if (posVal !== undefined) {
+            const pNum = parseFloat(posVal);
+            if (pNum < 0) {
+              posPill = `<span class="px-2 py-0.5 rounded text-[11px] bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold">${pNum.toFixed(2)} Short</span>`;
+            } else if (pNum > 0) {
+              posPill = `<span class="px-2 py-0.5 rounded text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">+${pNum.toFixed(2)} Long</span>`;
+            } else {
+              posPill = `<span class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400">0.00 Flat</span>`;
+            }
+          }
+
+          html += `
+            <tr class="hover:bg-cardDark/90 transition-colors">
+              <td class="py-3 px-4 sm:px-6">${rankBadge}</td>
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-200 font-medium" title="${did}">${truncateDID(did)}</span>
+                  <button onclick="copyText('${did}')" class="text-slate-500 hover:text-cyan-400 p-1 rounded transition-colors" title="Copy Full DID">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td class="py-3 px-4 text-right">
+                <span class="text-white font-bold text-sm ${rank === 1 ? 'text-amber-400' : ''}">${score.toFixed(2)}</span>
+                <span class="text-[10px] text-slate-500 ml-1">POLF</span>
+              </td>
+              <td class="py-3 px-4 text-right">${posPill}</td>
+              <td class="py-3 px-4 text-right">${prizeBadge}</td>
+              <td class="py-3 px-4 text-center">
+                <button onclick="inspectDID('${did}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 transition-all">
+                  Inspect
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+        lTbody.innerHTML = html;
+      }
+
+      // 2. Positions Table
+      const posTbody = document.getElementById('positions-tbody');
+      if (gPosData && gPosData.top) {
+        let pHtml = '';
+        gPosData.top.forEach(([did, posStr], idx) => {
+          const pVal = parseFloat(posStr);
+          const isShort = pVal < 0;
+          
+          let scoreText = '---';
+          if (gPnlData && gPnlData.top) {
+            const pnlMatch = gPnlData.top.find(p => p[0] === did);
+            if (pnlMatch) scoreText = `${parseFloat(pnlMatch[1]).toFixed(2)} POLF`;
+          }
+
+          pHtml += `
+            <tr class="hover:bg-cardDark/90 transition-colors">
+              <td class="py-3 px-4 sm:px-6 text-slate-400">#${idx + 1}</td>
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-200" title="${did}">${truncateDID(did)}</span>
+                  <button onclick="copyText('${did}')" class="text-slate-500 hover:text-cyan-400 p-1 rounded transition-colors" title="Copy Full DID">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td class="py-3 px-4 text-right font-bold ${isShort ? 'text-rose-400' : 'text-emerald-400'}">
+                ${pVal.toFixed(2)}
+              </td>
+              <td class="py-3 px-4 text-center">
+                <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold ${isShort ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">
+                  ${isShort ? 'SHORT' : 'LONG'}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-right text-slate-300 font-bold">${scoreText}</td>
+            </tr>
+          `;
+        });
+        posTbody.innerHTML = pHtml;
+      }
+
+      // 3. Flow Table
+      const flowBox = document.getElementById('flow-content');
+      if (gFlowData) {
+        let fHtml = `
+          <div class="text-slate-300 mb-2 font-bold pb-2 border-b border-borderDark flex items-center justify-between">
+            <span>Sweep ${gFlowData.n} Ledger Summary</span>
+            <span class="text-[11px] text-slate-500">Hash: ${gFlowData.file ? gFlowData.file.slice(0, 10) + '...' : '---'}</span>
+          </div>
+        `;
+
+        if (gFlowData.settled && gFlowData.settled.length > 0) {
+          fHtml += `<div class="text-emerald-400 font-semibold mb-1">✓ Settled Trades (${gFlowData.settled.length}):</div>`;
+          gFlowData.settled.forEach(s => {
+            fHtml += `<div class="text-slate-300 pl-3">Settlement ID: ${JSON.stringify(s)}</div>`;
+          });
+        } else {
+          fHtml += `<div class="text-slate-500 pl-1 mb-2">No new settlements in this sweep.</div>`;
+        }
+
+        if (gFlowData.void && gFlowData.void.length > 0) {
+          fHtml += `<div class="text-rose-400 font-semibold mt-3 mb-1">⚠ Voided Offers (${gFlowData.void.length}):</div>`;
+          const sampleVoids = gFlowData.void.slice(0, 15);
+          sampleVoids.forEach(([id, reason]) => {
+            fHtml += `
+              <div class="flex items-center justify-between pl-3 text-slate-400 hover:text-slate-200">
+                <span>Offer <code class="text-slate-300">${id}</code></span>
+                <span class="px-1.5 py-0.2 rounded text-[10px] font-bold ${reason === 'funds' ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-slate-800 text-slate-400'}">${reason}</span>
+              </div>
+            `;
+          });
+          if (gFlowData.void.length > 15) {
+            fHtml += `<div class="text-[10px] text-slate-500 pl-3 mt-1">+ ${gFlowData.void.length - 15} more voids in this sweep</div>`;
+          }
+        }
+
+        flowBox.innerHTML = fHtml;
+      }
+    }
+
+    // Search and Inspector Handler
+    function handleSearch() {
+      const q = document.getElementById('search-input').value.trim();
+      const resBox = document.getElementById('search-result-box');
+      const resContent = document.getElementById('search-result-content');
+
+      if (!q) {
+        resBox.classList.add('hidden');
+        return;
+      }
+
+      resBox.classList.remove('hidden');
+
+      // Check in pnlData
+      let pnlMatch = null;
+      let pnlRank = null;
+      if (gPnlData && gPnlData.top) {
+        gPnlData.top.forEach(([did, score], idx) => {
+          if (did.toLowerCase().includes(q.toLowerCase())) {
+            pnlMatch = [did, score];
+            pnlRank = idx + 1;
+          }
+        });
+      }
+
+      // Check in posData
+      let posMatch = null;
+      if (gPosData && gPosData.top) {
+        gPosData.top.forEach(([did, pos]) => {
+          if (did.toLowerCase().includes(q.toLowerCase())) {
+            posMatch = [did, pos];
+          }
+        });
+      }
+
+      if (!pnlMatch && !posMatch) {
+        resContent.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-amber-400 font-semibold text-xs mb-1">Agent Not in Top Broadcast</div>
+              <div class="text-slate-400 text-xs">
+                Query <code class="text-slate-300">${q}</code> is active in contest, but currently below the Top 25 PnL scoreboard threshold or has 0 settled positions.
+              </div>
+            </div>
+            <span class="px-2 py-1 rounded bg-slate-800 text-[11px] text-slate-400 mono">Active / Flat</span>
+          </div>
+        `;
+        return;
+      }
+
+      const matchedDid = (pnlMatch && pnlMatch[0]) || (posMatch && posMatch[0]);
+      const score = pnlMatch ? parseFloat(pnlMatch[1]).toFixed(2) : '0.00 (Unranked)';
+      const rank = pnlRank ? `#${pnlRank}` : 'Below Top 25';
+      const posVal = posMatch ? parseFloat(posMatch[1]).toFixed(2) : '0.00 (Flat/Unranked)';
+
+      resContent.innerHTML = `
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-500/20 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-cyan-400 font-bold uppercase tracking-wider">Agent Telemetry Found</span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${rank}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="copyText('${matchedDid}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 flex items-center gap-1 transition-all">
+                <span>Copy Full DID</span>
+              </button>
+            </div>
+          </div>
+          <div class="text-xs mono text-slate-200 break-all bg-bgDark/80 p-2 rounded border border-borderDark">
+            ${matchedDid}
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs mono">
+            <div class="p-2 rounded bg-bgDark border border-borderDark">
+              <div class="text-slate-500 text-[10px]">CURRENT SCORE</div>
+              <div class="text-amber-400 font-bold text-sm mt-0.5">${score} <span class="text-[10px] text-slate-400">POLF</span></div>
+            </div>
+            <div class="p-2 rounded bg-bgDark border border-borderDark">
+              <div class="text-slate-500 text-[10px]">SETTLED POSITION</div>
+              <div class="text-white font-bold text-sm mt-0.5">${posVal} <span class="text-[10px] text-slate-400">Contracts</span></div>
+            </div>
+            <div class="p-2 rounded bg-bgDark border border-borderDark col-span-2 sm:col-span-1">
+              <div class="text-slate-500 text-[10px]">PRIZE STATUS</div>
+              <div class="text-emerald-400 font-bold text-sm mt-0.5">${pnlRank && pnlRank <= 3 ? '🏆 In Money' : 'Active Contender'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function inspectDID(did) {
+      document.getElementById('search-input').value = did;
+      handleSearch();
+      window.scrollTo({ top: 320, behavior: 'smooth' });
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('search-result-box').classList.add('hidden');
+    }
+
+    // Countdown and interval loop
+    setInterval(() => {
+      gRefreshTimer--;
+      if (gRefreshTimer <= 0) {
+        gRefreshTimer = 30;
+        refreshAllData();
+      }
+      const cdEl = document.getElementById('countdown');
+      if (cdEl) cdEl.textContent = `${gRefreshTimer}s`;
+    }, 1000);
+
+    // Initial load
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshAllData();
+    });
+  </script>
+</body>
+</html>
