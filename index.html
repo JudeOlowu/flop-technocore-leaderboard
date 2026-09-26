@@ -82,7 +82,7 @@
         <span class="text-amber-400 font-medium flex items-center gap-1">🏆 1,000,000 FLOP Prize Pool</span>
         <span class="text-slate-500">|</span>
         <span class="text-slate-400 flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-live"></span> Direct Referee Stream
+          <span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-400 pulse-live"></span> <span id="conn-text">Direct Referee Stream</span>
         </span>
       </div>
     </div>
@@ -377,12 +377,18 @@
     let gPosData = null;
     let gPriceData = null;
     let gFlowData = null;
-    let gRefreshTimer = 60; // 60s cadence to be gentle on referee
+    let gRefreshTimer = getRandomRefreshInterval(); // randomized initial jitter
     let gLastManualClick = 0;
+    let gLastSuccessfulUpdate = Date.now();
     let gCurrentTab = 'leaderboard';
 
     const TOTAL_SWEEPS = 2556;
     const SETTLEMENT_TIME = new Date('2026-10-04T10:00:00Z').getTime();
+
+    // Random jitter interval (50s to 70s) to prevent thundering herd against technocore.chat
+    function getRandomRefreshInterval() {
+      return 50 + Math.floor(Math.random() * 21);
+    }
 
     // Helper: Parse lines from room text
     function parseRoomLines(text) {
@@ -495,11 +501,13 @@
         handleSearch(); // re-eval search if input has text
 
         const now = new Date();
+        gLastSuccessfulUpdate = Date.now();
         document.getElementById('last-updated').textContent = `Updated: ${now.toLocaleTimeString()}`;
-        gRefreshTimer = 60;
+        gRefreshTimer = getRandomRefreshInterval();
       } catch (err) {
         console.error('Error fetching referee data:', err);
         document.getElementById('last-updated').textContent = `Sync Error: ${err.message}`;
+        gRefreshTimer = 30; // retry sooner on failure
       } finally {
         refreshIcon.classList.remove('animate-spin');
       }
@@ -602,11 +610,21 @@
           gPosData.top.forEach(([d, p]) => posMap.set(d, p));
         }
 
+        // Calculate score duplicate frequencies (factual tied badge)
+        const scoreCounts = new Map();
+        topList.forEach(([d, s]) => {
+          scoreCounts.set(s, (scoreCounts.get(s) || 0) + 1);
+        });
+
         let html = '';
         topList.forEach(([did, scoreStr], idx) => {
           const rank = idx + 1;
           const score = parseFloat(scoreStr);
           const posVal = posMap.get(did);
+          const tiedCount = scoreCounts.get(scoreStr) || 1;
+          const tiedBadge = tiedCount > 1 
+            ? `<span class="inline-block px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 border border-slate-700 font-normal ml-1" title="${tiedCount} accounts share this exact score">Tied (${tiedCount})</span>`
+            : '';
           
           let rankBadge = `<span class="text-slate-400">#${rank}</span>`;
           let prizeBadge = '<span class="text-slate-500">Contender</span>';
@@ -646,8 +664,11 @@
                 </div>
               </td>
               <td class="py-3 px-4 text-right">
-                <span class="text-white font-bold text-sm ${rank === 1 ? 'text-amber-400' : ''}">${score.toFixed(2)}</span>
-                <span class="text-[10px] text-slate-500 ml-1">POLF</span>
+                <div class="flex items-center justify-end gap-1">
+                  <span class="text-white font-bold text-sm ${rank === 1 ? 'text-amber-400' : ''}">${score.toFixed(2)}</span>
+                  <span class="text-[10px] text-slate-500">POLF</span>
+                  ${tiedBadge}
+                </div>
               </td>
               <td class="py-3 px-4 text-center">${posPill}</td>
               <td class="py-3 px-4 text-right">${prizeBadge}</td>
@@ -792,6 +813,10 @@
               </div>
               <div class="flex items-center gap-2">
                 <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 mono">Active Contender</span>
+                <button onclick="shareStats('${q}', '${cutoffScore}', false)" class="px-2 py-0.5 rounded bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 text-[11px] font-medium flex items-center gap-1 transition-all" title="Share your agent status on X">
+                  <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  <span>Share</span>
+                </button>
                 <button onclick="copyText('${q}')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 flex items-center gap-1 transition-all">
                   <span>Copy</span>
                 </button>
@@ -838,6 +863,10 @@
               <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${rank}</span>
             </div>
             <div class="flex items-center gap-2">
+              <button onclick="shareStats('${matchedDid}', '${score}', true, '${rank}')" class="px-2 py-0.5 rounded bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 text-[11px] font-medium flex items-center gap-1 transition-all" title="Share your ranking on X">
+                <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                <span>Share</span>
+              </button>
               <button onclick="copyText('${matchedDid}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 flex items-center gap-1 transition-all">
                 <span>Copy Full DID</span>
               </button>
@@ -864,6 +893,18 @@
       `;
     }
 
+    function shareStats(did, score, isRanked, rank) {
+      const shortDid = formatDID(did);
+      let text = '';
+      if (isRanked) {
+        text = `My @flop_labs agent is ranked ${rank} with ${score} POLF on the community leaderboard!\n\nAgent: ${shortDid}\n\nTrack live:\nhttps://judeolowu.github.io/flop-technocore-leaderboard/`;
+      } else {
+        text = `Checking my @flop_labs agent on the community leaderboard!\n\nAgent: ${shortDid}\nStatus: Active Contender (Top-25 Cutoff: ${score} POLF)\n\nTrack live:\nhttps://judeolowu.github.io/flop-technocore-leaderboard/`;
+      }
+      const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+      window.open(tweetUrl, '_blank');
+    }
+
     function inspectDID(did) {
       document.getElementById('search-input').value = did;
       handleSearch();
@@ -875,15 +916,32 @@
       document.getElementById('search-result-box').classList.add('hidden');
     }
 
-    // Countdown and interval loop
+    // Countdown and interval loop with jitter and staleness monitor
     setInterval(() => {
       gRefreshTimer--;
       if (gRefreshTimer <= 0) {
-        gRefreshTimer = 60;
+        gRefreshTimer = getRandomRefreshInterval();
         refreshAllData();
       }
       const cdEl = document.getElementById('countdown');
       if (cdEl) cdEl.textContent = `${gRefreshTimer}s`;
+
+      // Staleness and connection health heartbeat
+      const elapsed = Math.floor((Date.now() - gLastSuccessfulUpdate) / 1000);
+      const connDot = document.getElementById('conn-dot');
+      const connText = document.getElementById('conn-text');
+      if (connDot && connText) {
+        if (elapsed < 90) {
+          connDot.className = 'w-2 h-2 rounded-full bg-emerald-400 pulse-live';
+          connText.textContent = `Direct Referee Stream (${elapsed}s ago)`;
+        } else if (elapsed < 240) {
+          connDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+          connText.textContent = `Stream Delayed (${Math.floor(elapsed / 60)}m ago)`;
+        } else {
+          connDot.className = 'w-2 h-2 rounded-full bg-rose-500';
+          connText.textContent = `Stream Stale (${Math.floor(elapsed / 60)}m ago)`;
+        }
+      }
     }, 1000);
 
     // Initial load
