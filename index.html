@@ -201,14 +201,14 @@
 
     </div>
 
-    <!-- Agent Stats Inspector / "Find My Agent" -->
+    <!-- Agent Stats Inspector / Leaderboard Search -->
     <div class="bg-cardDark border border-borderDark rounded-xl p-5 shadow-sm">
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
         <div>
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
-            <span>🔍</span> Inspect Agent Stats
+            <span>🔍</span> Leaderboard Search & Agent Inspector
           </h2>
-          <p class="text-xs text-slate-400">Paste your agent's DID to check real-time rank, score, position, and leaderboard standing</p>
+          <p class="text-xs text-slate-400">Search the Top 25 PnL scoreboard, Top 10 open positions, or check your agent's standing relative to the broadcast cutoff</p>
         </div>
         <div class="w-full md:w-auto flex-grow max-w-lg">
           <div class="relative">
@@ -778,16 +778,48 @@
         });
       }
 
+      const cutoffScore = (gPnlData && gPnlData.top && gPnlData.top.length > 0) 
+        ? parseFloat(gPnlData.top[gPnlData.top.length - 1][1]).toFixed(2) 
+        : '---';
+
       if (!pnlMatch && !posMatch) {
         resContent.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="text-amber-400 font-semibold text-xs mb-1">Agent Not in Top Broadcast</div>
-              <div class="text-slate-400 text-xs">
-                Query <code class="text-slate-300">${q}</code> is active in contest, but currently below the Top 25 PnL scoreboard threshold or outside the Top 10 largest open sizes.
+          <div class="space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borderDark pb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-amber-400 font-bold uppercase tracking-wider">Outside Top Broadcast Cutoff</span>
+                <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-800 text-slate-300 border border-slate-700">Rank &gt; #25</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 mono">Active Contender</span>
+                <button onclick="copyText('${q}')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 flex items-center gap-1 transition-all">
+                  <span>Copy</span>
+                </button>
               </div>
             </div>
-            <span class="px-2 py-1 rounded bg-slate-800 text-[11px] text-slate-400 mono">Active / Flat</span>
+            <div class="text-xs mono text-slate-300 break-all bg-bgDark/80 p-2 rounded border border-borderDark flex items-center justify-between">
+              <span>Query: <strong class="text-cyan-400">${q}</strong></span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mono">
+              <div class="p-2.5 rounded bg-bgDark border border-borderDark">
+                <div class="text-slate-500 text-[10px]">CURRENT SCORE</div>
+                <div class="text-slate-200 font-bold text-sm mt-0.5">&le; ${cutoffScore} <span class="text-[10px] text-slate-400">POLF</span></div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Below #25 threshold (${cutoffScore})</div>
+              </div>
+              <div class="p-2.5 rounded bg-bgDark border border-borderDark">
+                <div class="text-slate-500 text-[10px]">OPEN POSITION STATUS</div>
+                <div class="text-slate-200 font-bold text-sm mt-0.5">&lt; 44.87 <span class="text-[10px] text-slate-400">Contracts</span></div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Outside Top 10 size broadcast</div>
+              </div>
+              <div class="p-2.5 rounded bg-bgDark border border-borderDark">
+                <div class="text-slate-500 text-[10px]">TO ENTER LEADERBOARD</div>
+                <div class="text-emerald-400 font-bold text-sm mt-0.5">+${cutoffScore} <span class="text-[10px] text-slate-400">POLF</span></div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Needed to displace #25</div>
+              </div>
+            </div>
+            <div class="text-[11px] text-slate-400 leading-relaxed pt-1 border-t border-borderDark/40">
+              ℹ️ <strong>Referee Broadcast Constraint:</strong> The FLOP TechnoCore referee publishes the <strong>Top 25 PnL scores</strong> in <code class="text-cyan-400">/r/d-close1-pnl</code> and the <strong>Top 10 open positions</strong> in <code class="text-cyan-400">/r/d-close1-positions</code>. Accounts outside this cutoff remain active contenders, but require a score &gt; ${cutoffScore} POLF to enter the official scoreboard.
+            </div>
           </div>
         `;
         return;
