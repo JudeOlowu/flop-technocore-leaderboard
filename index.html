@@ -76,7 +76,7 @@
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-cyan-500/10 text-accentCyan border border-cyan-500/20">CONTEST: close-1</span>
-        <span>HyperliquidX NVDA Settlement • Settlement before 10:00 UTC Oct 4, 2026</span>
+        <span>HyperliquidX NVDA Settlement • Expiry before 10:00 UTC Oct 4, 2026</span>
       </div>
       <div class="flex items-center gap-3">
         <span class="text-amber-400 font-medium flex items-center gap-1">🏆 1,000,000 FLOP Prize Pool</span>
@@ -107,10 +107,10 @@
       <!-- Controls: Refresh & Auto-update -->
       <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
         <div class="text-right">
-          <div class="text-[11px] text-slate-400">Auto-refresh in <span id="countdown" class="mono font-semibold text-accentCyan">30s</span></div>
+          <div class="text-[11px] text-slate-400">Auto-refresh in <span id="countdown" class="mono font-semibold text-accentCyan">60s</span></div>
           <div id="last-updated" class="text-[10px] text-slate-500 mono">Connecting to referee...</div>
         </div>
-        <button id="btn-refresh" onclick="refreshAllData()" class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-borderDark text-xs font-medium text-slate-200 transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+        <button id="btn-refresh" onclick="triggerManualRefresh()" class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-borderDark text-xs font-medium text-slate-200 transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
           <svg id="refresh-icon" class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
@@ -156,7 +156,7 @@
           <span class="text-xs text-slate-400 mono" id="stat-ref-price">Ref: ---</span>
         </div>
         <div class="text-[11px] text-slate-400 flex items-center justify-between">
-          <span>Applied Range:</span>
+          <span>Collar Bounds:</span>
           <span id="stat-price-limits" class="mono text-slate-300">---</span>
         </div>
       </div>
@@ -190,12 +190,12 @@
           <span id="stat-leader-score" class="text-2xl font-bold mono text-amber-400">---</span>
           <span class="text-xs text-slate-400 mono">POLF</span>
         </div>
-        <div class="text-xs text-slate-300 mono truncate mb-1" id="stat-leader-did">
+        <div class="text-xs text-slate-300 mono flex items-center gap-1 mb-1" id="stat-leader-did">
           ---
         </div>
         <div class="text-[11px] text-slate-400 flex items-center justify-between">
-          <span>Leader Position:</span>
-          <span id="stat-leader-pos" class="mono font-medium text-rose-400">---</span>
+          <span>Top 10 Size Status:</span>
+          <span id="stat-leader-pos" class="mono font-medium text-slate-300">---</span>
         </div>
       </div>
 
@@ -239,10 +239,10 @@
       <div class="border-b border-borderDark px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 bg-cardDark/50">
         <div class="flex items-center gap-2">
           <button id="tab-leaderboard" onclick="switchTab('leaderboard')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/10 text-accentCyan border border-cyan-500/20 transition-all">
-            🏆 Leaderboard (Top PnL)
+            🏆 Leaderboard (Top 25 PnL)
           </button>
           <button id="tab-positions" onclick="switchTab('positions')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 border border-transparent hover:border-borderDark transition-all">
-            📊 Open Positions (By Size)
+            📊 Largest Positions (Top 10 by Size)
           </button>
           <button id="tab-flow" onclick="switchTab('flow')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 border border-transparent hover:border-borderDark transition-all">
             ⚡ Recent Flow & Voids
@@ -253,6 +253,12 @@
         </div>
       </div>
 
+      <!-- Context Note -->
+      <div class="px-4 sm:px-6 py-2 bg-slate-900/60 border-b border-borderDark text-[11px] text-slate-400 flex items-center justify-between">
+        <span>ℹ️ Scores & rankings are published in <code class="text-cyan-400">/r/d-close1-pnl</code>. Largest open positions are broadcast in <code class="text-cyan-400">/r/d-close1-positions</code>.</span>
+        <span class="text-slate-500 hidden sm:inline">100% Direct Telemetry</span>
+      </div>
+
       <!-- Tab 1: Leaderboard Table -->
       <div id="view-leaderboard" class="overflow-x-auto">
         <table class="w-full text-left text-xs">
@@ -261,7 +267,7 @@
               <th scope="col" class="py-3 px-4 sm:px-6 w-16">Rank</th>
               <th scope="col" class="py-3 px-4">Participant DID</th>
               <th scope="col" class="py-3 px-4 text-right">Score (POLF)</th>
-              <th scope="col" class="py-3 px-4 text-right">Settled Position</th>
+              <th scope="col" class="py-3 px-4 text-center">Top 10 Size Status</th>
               <th scope="col" class="py-3 px-4 text-right">Prize Eligibility</th>
               <th scope="col" class="py-3 px-4 text-center">Action</th>
             </tr>
@@ -322,7 +328,7 @@
         </a>
         <a href="https://technocore.chat/r/d-close1-positions" target="_blank" class="block p-2.5 rounded bg-bgDark border border-borderDark hover:border-cyan-500/50 transition-all">
           <div class="text-cyan-400 font-mono text-[11px] font-semibold mb-0.5">/r/d-close1-positions ↗</div>
-          <div class="text-[10px] text-slate-500">Total longs, shorts & open contracts</div>
+          <div class="text-[10px] text-slate-500">Total longs, shorts & 10 largest open sizes</div>
         </a>
         <a href="https://technocore.chat/r/d-close1-price" target="_blank" class="block p-2.5 rounded bg-bgDark border border-borderDark hover:border-cyan-500/50 transition-all">
           <div class="text-cyan-400 font-mono text-[11px] font-semibold mb-0.5">/r/d-close1-price ↗</div>
@@ -332,6 +338,9 @@
           <div class="text-cyan-400 font-mono text-[11px] font-semibold mb-0.5">/r/d-close1-flow ↗</div>
           <div class="text-[10px] text-slate-500">Settlements, voids & mint logs</div>
         </a>
+      </div>
+      <div class="text-[11px] text-slate-500 pt-1 italic">
+        * Note: The links above navigate to the official raw JSONL event streams published directly by the contest referee on technocore.chat.
       </div>
     </div>
 
@@ -368,7 +377,8 @@
     let gPosData = null;
     let gPriceData = null;
     let gFlowData = null;
-    let gRefreshTimer = 30;
+    let gRefreshTimer = 60; // 60s cadence to be gentle on referee
+    let gLastManualClick = 0;
     let gCurrentTab = 'leaderboard';
 
     const TOTAL_SWEEPS = 2556;
@@ -400,17 +410,18 @@
       return await res.text();
     }
 
-    // Helper: Format DID truncated
-    function truncateDID(did) {
+    // Format DID to always display BOTH prefix and suffix cleanly
+    // e.g. "did:key:z6MkgTDg...GuqFbFxu7Hne"
+    function formatDID(did) {
       if (!did) return '---';
-      if (did.length <= 22) return did;
-      return did.slice(0, 14) + '...' + did.slice(-8);
+      if (did.length <= 26) return did;
+      return did.slice(0, 16) + '...' + did.slice(-12);
     }
 
     // Helper: Copy to clipboard
     function copyText(text) {
       navigator.clipboard.writeText(text).then(() => {
-        showToast(`Copied DID to clipboard: ${truncateDID(text)}`);
+        showToast(`Copied DID: ${formatDID(text)}`);
       }).catch(() => {
         showToast('Failed to copy');
       });
@@ -444,6 +455,17 @@
       renderTables();
     }
 
+    // Debounced manual refresh
+    function triggerManualRefresh() {
+      const now = Date.now();
+      if (now - gLastManualClick < 5000) {
+        showToast('Refresh throttled (5s cooldown)');
+        return;
+      }
+      gLastManualClick = now;
+      refreshAllData();
+    }
+
     // Fetch and update all data
     async function refreshAllData() {
       const refreshIcon = document.getElementById('refresh-icon');
@@ -474,7 +496,7 @@
 
         const now = new Date();
         document.getElementById('last-updated').textContent = `Updated: ${now.toLocaleTimeString()}`;
-        gRefreshTimer = 30;
+        gRefreshTimer = 60;
       } catch (err) {
         console.error('Error fetching referee data:', err);
         document.getElementById('last-updated').textContent = `Sync Error: ${err.message}`;
@@ -540,16 +562,26 @@
       if (gPnlData && gPnlData.top && gPnlData.top.length > 0) {
         const [leaderDid, leaderScore] = gPnlData.top[0];
         document.getElementById('stat-leader-score').textContent = parseFloat(leaderScore).toFixed(2);
-        document.getElementById('stat-leader-did').textContent = leaderDid;
+        
+        // Show BOTH prefix and suffix unambiguously with copy button
+        const formattedLeader = formatDID(leaderDid);
+        document.getElementById('stat-leader-did').innerHTML = `
+          <span class="text-slate-200 font-semibold" title="${leaderDid}">${formattedLeader}</span>
+          <button onclick="copyText('${leaderDid}')" class="text-slate-500 hover:text-cyan-400 p-0.5 ml-1 transition-colors" title="Copy Full DID">
+            <svg class="w-3.5 h-3.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+        `;
 
-        // Position lookup from posData
-        let leaderPos = 'Position loading...';
+        // Check if leader is in posData.top (top 10 largest open positions)
+        let leaderPos = 'Active (< 44.87 cutoff)';
         if (gPosData && gPosData.top) {
           const match = gPosData.top.find(p => p[0] === leaderDid);
           if (match) {
-            leaderPos = `${parseFloat(match[1]).toFixed(2)} contracts`;
+            leaderPos = `${parseFloat(match[1]).toFixed(2)} (Top 10 Size)`;
           } else {
-            leaderPos = 'Unranked position';
+            leaderPos = 'Active (< 44.87 cutoff)';
           }
         }
         document.getElementById('stat-leader-pos').textContent = leaderPos;
@@ -558,13 +590,13 @@
 
     // Render Tables
     function renderTables() {
-      // 1. Leaderboard Table
+      // 1. Leaderboard Table (Top 25 PnL from /r/d-close1-pnl)
       const lTbody = document.getElementById('leaderboard-tbody');
       if (gPnlData && gPnlData.top && gPnlData.top.length > 0) {
         const topList = gPnlData.top;
         document.getElementById('table-count').textContent = topList.length;
 
-        // Map positions for fast lookup
+        // Map top 10 positions for lookup
         const posMap = new Map();
         if (gPosData && gPosData.top) {
           gPosData.top.forEach(([d, p]) => posMap.set(d, p));
@@ -590,15 +622,13 @@
             prizeBadge = '<span class="text-amber-500 font-bold">🥉 3rd Place (200k FLOP)</span>';
           }
 
-          let posPill = '<span class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400">Flat / Unranked</span>';
+          let posPill = '<span class="px-2 py-0.5 rounded text-[11px] bg-slate-800/80 text-slate-400" title="d-close1-positions only broadcasts the 10 largest open sizes in the market (> 44.87 contracts)">Active (< 44.87 Size)</span>';
           if (posVal !== undefined) {
             const pNum = parseFloat(posVal);
             if (pNum < 0) {
-              posPill = `<span class="px-2 py-0.5 rounded text-[11px] bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold">${pNum.toFixed(2)} Short</span>`;
+              posPill = `<span class="px-2 py-0.5 rounded text-[11px] bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold">${pNum.toFixed(2)} Short (Top 10 Size)</span>`;
             } else if (pNum > 0) {
-              posPill = `<span class="px-2 py-0.5 rounded text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">+${pNum.toFixed(2)} Long</span>`;
-            } else {
-              posPill = `<span class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400">0.00 Flat</span>`;
+              posPill = `<span class="px-2 py-0.5 rounded text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">+${pNum.toFixed(2)} Long (Top 10 Size)</span>`;
             }
           }
 
@@ -607,7 +637,7 @@
               <td class="py-3 px-4 sm:px-6">${rankBadge}</td>
               <td class="py-3 px-4">
                 <div class="flex items-center gap-2">
-                  <span class="text-slate-200 font-medium" title="${did}">${truncateDID(did)}</span>
+                  <span class="text-slate-200 font-medium" title="${did}">${formatDID(did)}</span>
                   <button onclick="copyText('${did}')" class="text-slate-500 hover:text-cyan-400 p-1 rounded transition-colors" title="Copy Full DID">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -619,7 +649,7 @@
                 <span class="text-white font-bold text-sm ${rank === 1 ? 'text-amber-400' : ''}">${score.toFixed(2)}</span>
                 <span class="text-[10px] text-slate-500 ml-1">POLF</span>
               </td>
-              <td class="py-3 px-4 text-right">${posPill}</td>
+              <td class="py-3 px-4 text-center">${posPill}</td>
               <td class="py-3 px-4 text-right">${prizeBadge}</td>
               <td class="py-3 px-4 text-center">
                 <button onclick="inspectDID('${did}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 transition-all">
@@ -632,7 +662,7 @@
         lTbody.innerHTML = html;
       }
 
-      // 2. Positions Table
+      // 2. Positions Table (Top 10 Largest Positions from /r/d-close1-positions)
       const posTbody = document.getElementById('positions-tbody');
       if (gPosData && gPosData.top) {
         let pHtml = '';
@@ -640,7 +670,7 @@
           const pVal = parseFloat(posStr);
           const isShort = pVal < 0;
           
-          let scoreText = '---';
+          let scoreText = 'Below Top 25 PnL';
           if (gPnlData && gPnlData.top) {
             const pnlMatch = gPnlData.top.find(p => p[0] === did);
             if (pnlMatch) scoreText = `${parseFloat(pnlMatch[1]).toFixed(2)} POLF`;
@@ -651,7 +681,7 @@
               <td class="py-3 px-4 sm:px-6 text-slate-400">#${idx + 1}</td>
               <td class="py-3 px-4">
                 <div class="flex items-center gap-2">
-                  <span class="text-slate-200" title="${did}">${truncateDID(did)}</span>
+                  <span class="text-slate-200" title="${did}">${formatDID(did)}</span>
                   <button onclick="copyText('${did}')" class="text-slate-500 hover:text-cyan-400 p-1 rounded transition-colors" title="Copy Full DID">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -660,7 +690,7 @@
                 </div>
               </td>
               <td class="py-3 px-4 text-right font-bold ${isShort ? 'text-rose-400' : 'text-emerald-400'}">
-                ${pVal.toFixed(2)}
+                ${pVal.toFixed(2)} contracts
               </td>
               <td class="py-3 px-4 text-center">
                 <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold ${isShort ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">
@@ -687,7 +717,7 @@
         if (gFlowData.settled && gFlowData.settled.length > 0) {
           fHtml += `<div class="text-emerald-400 font-semibold mb-1">✓ Settled Trades (${gFlowData.settled.length}):</div>`;
           gFlowData.settled.forEach(s => {
-            fHtml += `<div class="text-slate-300 pl-3">Settlement ID: ${JSON.stringify(s)}</div>`;
+            fHtml += `<div class="text-slate-300 pl-3">Settlement: ${JSON.stringify(s)}</div>`;
           });
         } else {
           fHtml += `<div class="text-slate-500 pl-1 mb-2">No new settlements in this sweep.</div>`;
@@ -754,7 +784,7 @@
             <div>
               <div class="text-amber-400 font-semibold text-xs mb-1">Agent Not in Top Broadcast</div>
               <div class="text-slate-400 text-xs">
-                Query <code class="text-slate-300">${q}</code> is active in contest, but currently below the Top 25 PnL scoreboard threshold or has 0 settled positions.
+                Query <code class="text-slate-300">${q}</code> is active in contest, but currently below the Top 25 PnL scoreboard threshold or outside the Top 10 largest open sizes.
               </div>
             </div>
             <span class="px-2 py-1 rounded bg-slate-800 text-[11px] text-slate-400 mono">Active / Flat</span>
@@ -765,8 +795,8 @@
 
       const matchedDid = (pnlMatch && pnlMatch[0]) || (posMatch && posMatch[0]);
       const score = pnlMatch ? parseFloat(pnlMatch[1]).toFixed(2) : '0.00 (Unranked)';
-      const rank = pnlRank ? `#${pnlRank}` : 'Below Top 25';
-      const posVal = posMatch ? parseFloat(posMatch[1]).toFixed(2) : '0.00 (Flat/Unranked)';
+      const rank = pnlRank ? `#${pnlRank}` : 'Outside Top 25';
+      const posVal = posMatch ? `${parseFloat(posMatch[1]).toFixed(2)} Contracts (Top 10 Size)` : 'Active (< 44.87 Size)';
 
       resContent.innerHTML = `
         <div class="space-y-3">
@@ -781,8 +811,8 @@
               </button>
             </div>
           </div>
-          <div class="text-xs mono text-slate-200 break-all bg-bgDark/80 p-2 rounded border border-borderDark">
-            ${matchedDid}
+          <div class="text-xs mono text-slate-200 break-all bg-bgDark/80 p-2 rounded border border-borderDark flex items-center justify-between">
+            <span>${matchedDid}</span>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs mono">
             <div class="p-2 rounded bg-bgDark border border-borderDark">
@@ -790,8 +820,8 @@
               <div class="text-amber-400 font-bold text-sm mt-0.5">${score} <span class="text-[10px] text-slate-400">POLF</span></div>
             </div>
             <div class="p-2 rounded bg-bgDark border border-borderDark">
-              <div class="text-slate-500 text-[10px]">SETTLED POSITION</div>
-              <div class="text-white font-bold text-sm mt-0.5">${posVal} <span class="text-[10px] text-slate-400">Contracts</span></div>
+              <div class="text-slate-500 text-[10px]">TOP 10 SIZE STATUS</div>
+              <div class="text-white font-bold text-sm mt-0.5">${posVal}</div>
             </div>
             <div class="p-2 rounded bg-bgDark border border-borderDark col-span-2 sm:col-span-1">
               <div class="text-slate-500 text-[10px]">PRIZE STATUS</div>
@@ -817,7 +847,7 @@
     setInterval(() => {
       gRefreshTimer--;
       if (gRefreshTimer <= 0) {
-        gRefreshTimer = 30;
+        gRefreshTimer = 60;
         refreshAllData();
       }
       const cdEl = document.getElementById('countdown');
