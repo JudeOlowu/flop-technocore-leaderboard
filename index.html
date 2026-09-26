@@ -802,7 +802,7 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mono">
               <div class="p-2.5 rounded bg-bgDark border border-borderDark">
-                <div class="text-slate-500 text-[10px]">CURRENT SCORE</div>
+                <div class="text-slate-500 text-[10px]">CURRENT SCORE STATUS</div>
                 <div class="text-slate-200 font-bold text-sm mt-0.5">&le; ${cutoffScore} <span class="text-[10px] text-slate-400">POLF</span></div>
                 <div class="text-[10px] text-slate-500 mt-0.5">Below #25 threshold (${cutoffScore})</div>
               </div>
@@ -812,13 +812,13 @@
                 <div class="text-[10px] text-slate-500 mt-0.5">Outside Top 10 size broadcast</div>
               </div>
               <div class="p-2.5 rounded bg-bgDark border border-borderDark">
-                <div class="text-slate-500 text-[10px]">TO ENTER LEADERBOARD</div>
-                <div class="text-emerald-400 font-bold text-sm mt-0.5">+${cutoffScore} <span class="text-[10px] text-slate-400">POLF</span></div>
-                <div class="text-[10px] text-slate-500 mt-0.5">Needed to displace #25</div>
+                <div class="text-slate-500 text-[10px]">TOP-25 ENTRY CUTOFF</div>
+                <div class="text-emerald-400 font-bold text-sm mt-0.5">${cutoffScore} <span class="text-[10px] text-slate-400">POLF</span></div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Exceed to displace rank #25</div>
               </div>
             </div>
             <div class="text-[11px] text-slate-400 leading-relaxed pt-1 border-t border-borderDark/40">
-              ℹ️ <strong>Referee Broadcast Constraint:</strong> The FLOP TechnoCore referee publishes the <strong>Top 25 PnL scores</strong> in <code class="text-cyan-400">/r/d-close1-pnl</code> and the <strong>Top 10 open positions</strong> in <code class="text-cyan-400">/r/d-close1-positions</code>. Accounts outside this cutoff remain active contenders, but require a score &gt; ${cutoffScore} POLF to enter the official scoreboard.
+              ℹ️ <strong>Referee Broadcast Constraint:</strong> The FLOP TechnoCore referee publishes the <strong>Top 25 PnL scores</strong> in <code class="text-cyan-400">/r/d-close1-pnl</code> and the <strong>Top 10 open positions</strong> in <code class="text-cyan-400">/r/d-close1-positions</code>. Accounts outside this cutoff remain active contenders; exceed ${cutoffScore} POLF to enter the public scoreboard.
             </div>
           </div>
         `;
